@@ -45,3 +45,35 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
 
     Ok(rocket.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sled_id_1() {
+        let values = vec![4, 8];
+        let segments = SledIdInput(values.into());
+        let result = sled_id(segments);
+
+        assert_eq!(result, "1728");
+    }
+
+    #[test]
+    fn test_sled_id_2() {
+        let values = vec![10];
+        let segments = SledIdInput(values.into());
+        let result = sled_id(segments);
+
+        assert_eq!(result, "1000");
+    }
+
+    #[test]
+    fn test_sled_id_3() {
+        let values = vec![4, 5, 8, 10];
+        let segments = SledIdInput(values.into());
+        let result = sled_id(segments);
+
+        assert_eq!(result, "27");
+    }
+}
