@@ -66,6 +66,50 @@ fn reindeer_team_strength(team: Json<Vec<Reindeer<'_>>>) -> String {
         .to_string()
 }
 
+trait ContestAward {
+    fn award_text(&self) -> String;
+}
+
+struct FastestReindeer<'r>(&'r Reindeer<'r>);
+
+impl<'r> ContestAward for FastestReindeer<'r> {
+    fn award_text(&self) -> String {
+        let strength = self.0.strength;
+        let name = self.0.name;
+        format!("Speeding past the finish line with a strength of {strength} is {name}")
+    }
+}
+
+struct TallestReindeer<'r>(&'r Reindeer<'r>);
+
+impl<'r> ContestAward for TallestReindeer<'r> {
+    fn award_text(&self) -> String {
+        let name = self.0.name;
+        let antler_width = self.0.antler_width;
+        format!("{name} is standing tall with his {antler_width} cm wide antlers")
+    }
+}
+
+struct MagicianReindeer<'r>(&'r Reindeer<'r>);
+
+impl<'r> ContestAward for MagicianReindeer<'r> {
+    fn award_text(&self) -> String {
+        let name = self.0.name;
+        let snow_magic_power = self.0.snow_magic_power;
+        format!("{name} could blast you away with a snow magic power of {snow_magic_power}")
+    }
+}
+
+struct ConsumerReindeer<'r>(&'r Reindeer<'r>);
+
+impl<'r> ContestAward for ConsumerReindeer<'r> {
+    fn award_text(&self) -> String {
+        let name = self.0.name;
+        let favorite_food = self.0.favorite_food;
+        format!("{name} ate lots of candies, but also some {favorite_food}")
+    }
+}
+
 #[derive(Debug, Default, Serialize, PartialEq)]
 struct ReindeerContest {
     fastest: String,
@@ -79,42 +123,22 @@ fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
     let fastest = team
         .iter()
         .max_by(|&r1, &r2| r1.speed.total_cmp(&r2.speed))
-        .map(|r| {
-            format!(
-                "Speeding past the finish line with a strength of {} is {}",
-                r.strength, r.name
-            )
-        })
+        .map(|r| FastestReindeer(r).award_text())
         .unwrap_or_default();
     let tallest = team
         .iter()
         .max_by_key(|&r| r.height)
-        .map(|r| {
-            format!(
-                "{} is standing tall with his {} cm wide antlers",
-                r.name, r.antler_width
-            )
-        })
+        .map(|r| TallestReindeer(r).award_text())
         .unwrap_or_default();
     let magician = team
         .iter()
         .max_by_key(|&r| r.snow_magic_power)
-        .map(|r| {
-            format!(
-                "{} could blast you away with a snow magic power of {}",
-                r.name, r.snow_magic_power
-            )
-        })
+        .map(|r| MagicianReindeer(r).award_text())
         .unwrap_or_default();
     let consumer = team
         .iter()
         .max_by_key(|&r| r.candies_eaten_yesterday)
-        .map(|r| {
-            format!(
-                "{} ate lots of candies, but also some {}",
-                r.name, r.favorite_food
-            )
-        })
+        .map(|r| ConsumerReindeer(r).award_text())
         .unwrap_or_default();
     Json(ReindeerContest {
         fastest,
