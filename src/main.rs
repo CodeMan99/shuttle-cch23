@@ -74,57 +74,47 @@ struct ReindeerContest {
     consumer: String,
 }
 
-impl Reindeer<'_> {
-    fn fastest_message(&self) -> String {
-        format!(
-            "Speeding past the finish line with a strength of {} is {}",
-            self.strength, self.name
-        )
-    }
-
-    fn tallest_message(&self) -> String {
-        format!(
-            "{} is standing tall with his {} cm wide antlers",
-            self.name, self.antler_width
-        )
-    }
-
-    fn magician_message(&self) -> String {
-        format!(
-            "{} could blast you away with a snow magic power of {}",
-            self.name, self.snow_magic_power
-        )
-    }
-
-    fn consumer_message(&self) -> String {
-        format!(
-            "{} ate lots of candies, but also some {}",
-            self.name, self.favorite_food
-        )
-    }
-}
-
 #[post("/4/contest", data = "<team>")]
 fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
     let fastest = team
         .iter()
         .max_by(|&r1, &r2| r1.speed.total_cmp(&r2.speed))
-        .map(Reindeer::fastest_message)
+        .map(|r| {
+            format!(
+                "Speeding past the finish line with a strength of {} is {}",
+                r.strength, r.name
+            )
+        })
         .unwrap_or_default();
     let tallest = team
         .iter()
         .max_by_key(|&r| r.height)
-        .map(Reindeer::tallest_message)
+        .map(|r| {
+            format!(
+                "{} is standing tall with his {} cm wide antlers",
+                r.name, r.antler_width
+            )
+        })
         .unwrap_or_default();
     let magician = team
         .iter()
         .max_by_key(|&r| r.snow_magic_power)
-        .map(Reindeer::magician_message)
+        .map(|r| {
+            format!(
+                "{} could blast you away with a snow magic power of {}",
+                r.name, r.snow_magic_power
+            )
+        })
         .unwrap_or_default();
     let consumer = team
         .iter()
         .max_by_key(|&r| r.candies_eaten_yesterday)
-        .map(Reindeer::consumer_message)
+        .map(|r| {
+            format!(
+                "{} ate lots of candies, but also some {}",
+                r.name, r.favorite_food
+            )
+        })
         .unwrap_or_default();
     Json(ReindeerContest {
         fastest,
