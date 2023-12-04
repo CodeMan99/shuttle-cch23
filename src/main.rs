@@ -57,23 +57,6 @@ struct Reindeer<'r> {
     candies_eaten_yesterday: i32,
 }
 
-/// This implementation is only for test cases
-#[cfg(test)]
-impl<'r> Reindeer<'r> {
-    fn new(name: &'r str, strength: i32) -> Self {
-        Reindeer {
-            name,
-            strength,
-            speed: Default::default(),
-            height: Default::default(),
-            antler_width: Default::default(),
-            snow_magic_power: Default::default(),
-            favorite_food: Default::default(),
-            candies_eaten_yesterday: Default::default(),
-        }
-    }
-}
-
 // TODO not sure if the return type is correct. Might need to be Json<String>.
 #[post("/4/strength", data = "<team>")]
 fn reindeer_team_strength(team: Json<Vec<Reindeer<'_>>>) -> String {
@@ -186,42 +169,48 @@ mod tests {
 
     #[rstest]
     fn test_reindeer_team_strength() {
-        let team = Json(vec![
-            Reindeer::new("Dasher", 5),
-            Reindeer::new("Dancer", 6),
-            Reindeer::new("Prancer", 4),
-            Reindeer::new("Vixen", 7),
-        ]);
-        let result = reindeer_team_strength(team);
+        let team = serde_json::from_str(
+            r#"[
+                {"name": "Dasher", "strength": 5},
+                {"name": "Dancer", "strength": 6},
+                {"name": "Prancer", "strength": 4},
+                {"name": "Vixen", "strength": 7}
+            ]"#,
+        )
+        .unwrap();
+        let result = reindeer_team_strength(Json(team));
 
         assert_eq!(result, "22");
     }
 
     #[rstest]
     fn test_reindeer_contest() {
-        let team = Json(vec![
-            Reindeer {
-                name: "Dasher",
-                strength: 5,
-                speed: 50.4,
-                height: 80,
-                antler_width: 36,
-                snow_magic_power: 9001,
-                favorite_food: "hay",
-                candies_eaten_yesterday: 2,
-            },
-            Reindeer {
-                name: "Dancer",
-                strength: 6,
-                speed: 48.2,
-                height: 65,
-                antler_width: 37,
-                snow_magic_power: 4004,
-                favorite_food: "grass",
-                candies_eaten_yesterday: 5,
-            },
-        ]);
-        let result = reindeer_contest(team);
+        let team = serde_json::from_str(
+            r#"[
+                {
+                    "name": "Dasher",
+                    "strength": 5,
+                    "speed": 50.4,
+                    "height": 80,
+                    "antler_width": 36,
+                    "snow_magic_power": 9001,
+                    "favorite_food": "hay",
+                    "cAnD13s_3ATeN-yesT3rdAy": 2
+                },
+                {
+                    "name": "Dancer",
+                    "strength": 6,
+                    "speed": 48.2,
+                    "height": 65,
+                    "antler_width": 37,
+                    "snow_magic_power": 4004,
+                    "favorite_food": "grass",
+                    "cAnD13s_3ATeN-yesT3rdAy": 5
+                }
+            ]"#,
+        )
+        .unwrap();
+        let result = reindeer_contest(Json(team));
         let expected = Json(ReindeerContest {
             fastest: "Speeding past the finish line with a strength of 5 is Dasher".to_owned(),
             tallest: "Dasher is standing tall with his 36 cm wide antlers".to_owned(),
