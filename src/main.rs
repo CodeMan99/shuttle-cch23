@@ -5,7 +5,8 @@ use rocket::http::uri::{fmt, Segments};
 use rocket::http::Status;
 use rocket::request::FromSegments;
 use rocket::response::status;
-use rocket::{get, routes};
+use rocket::serde::{json::Json, Deserialize, Serialize};
+use rocket::{get, post, routes};
 
 #[get("/")]
 fn index() -> &'static str {
@@ -42,9 +43,126 @@ fn sled_id(nums: SegmentsRest<i32>) -> String {
     a.to_string()
 }
 
+#[derive(Clone, Debug, Deserialize, Default)]
+#[serde(default)]
+struct Reindeer<'r> {
+    name: &'r str,
+    strength: i32,
+    speed: f64,
+    height: i32,
+    antler_width: i32,
+    snow_magic_power: i32,
+    favorite_food: &'r str,
+    #[serde(rename = "cAnD13s_3ATeN-yesT3rdAy")]
+    candies_eaten_yesterday: i32,
+}
+
+/// This implementation is only for test cases
+#[cfg(test)]
+impl<'r> Reindeer<'r> {
+    fn new(name: &'r str, strength: i32) -> Self {
+        Reindeer {
+            name,
+            strength,
+            speed: Default::default(),
+            height: Default::default(),
+            antler_width: Default::default(),
+            snow_magic_power: Default::default(),
+            favorite_food: Default::default(),
+            candies_eaten_yesterday: Default::default(),
+        }
+    }
+}
+
+// TODO not sure if the return type is correct. Might need to be Json<String>.
+#[post("/4/strength", data = "<team>")]
+fn reindeer_team_strength(team: Json<Vec<Reindeer<'_>>>) -> String {
+    team.iter()
+        .map(|reindeer| reindeer.strength)
+        .sum::<i32>()
+        .to_string()
+}
+
+#[derive(Debug, Default, Serialize, PartialEq)]
+struct ReindeerContest {
+    fastest: String,
+    tallest: String,
+    magician: String,
+    consumer: String,
+}
+
+impl Reindeer<'_> {
+    fn fastest_message(&self) -> String {
+        format!(
+            "Speeding past the finish line with a strength of {} is {}",
+            self.strength, self.name
+        )
+    }
+
+    fn tallest_message(&self) -> String {
+        format!(
+            "{} is standing tall with his {} cm wide antlers",
+            self.name, self.antler_width
+        )
+    }
+
+    fn magician_message(&self) -> String {
+        format!(
+            "{} could blast you away with a snow magic power of {}",
+            self.name, self.snow_magic_power
+        )
+    }
+
+    fn consumer_message(&self) -> String {
+        format!(
+            "{} ate lots of candies, but also some {}",
+            self.name, self.favorite_food
+        )
+    }
+}
+
+#[post("/4/contest", data = "<team>")]
+fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
+    let fastest = team
+        .iter()
+        .max_by(|&r1, &r2| r1.speed.total_cmp(&r2.speed))
+        .map(Reindeer::fastest_message)
+        .unwrap_or_default();
+    let tallest = team
+        .iter()
+        .max_by_key(|&r| r.height)
+        .map(Reindeer::tallest_message)
+        .unwrap_or_default();
+    let magician = team
+        .iter()
+        .max_by_key(|&r| r.snow_magic_power)
+        .map(Reindeer::magician_message)
+        .unwrap_or_default();
+    let consumer = team
+        .iter()
+        .max_by_key(|&r| r.candies_eaten_yesterday)
+        .map(Reindeer::consumer_message)
+        .unwrap_or_default();
+    Json(ReindeerContest {
+        fastest,
+        tallest,
+        magician,
+        consumer,
+    })
+}
+
 #[shuttle_runtime::main]
 async fn main() -> shuttle_rocket::ShuttleRocket {
-    let rocket = rocket::build().mount("/", routes![index, error, sled_id]);
+    let rocket = rocket::build().mount(
+        "/",
+        routes![
+            index,
+            error,
+            sled_id,
+            reindeer_team_strength,
+            reindeer_contest,
+        ],
+    );
 
     Ok(rocket.into())
 }
@@ -62,6 +180,54 @@ mod tests {
     fn test_sled_id(#[case] values: Vec<i32>, #[case] expected: &str) {
         let segments = SegmentsRest(values.into());
         let result = sled_id(segments);
+
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    fn test_reindeer_team_strength() {
+        let team = Json(vec![
+            Reindeer::new("Dasher", 5),
+            Reindeer::new("Dancer", 6),
+            Reindeer::new("Prancer", 4),
+            Reindeer::new("Vixen", 7),
+        ]);
+        let result = reindeer_team_strength(team);
+
+        assert_eq!(result, "22");
+    }
+
+    #[rstest]
+    fn test_reindeer_contest() {
+        let team = Json(vec![
+            Reindeer {
+                name: "Dasher",
+                strength: 5,
+                speed: 50.4,
+                height: 80,
+                antler_width: 36,
+                snow_magic_power: 9001,
+                favorite_food: "hay",
+                candies_eaten_yesterday: 2,
+            },
+            Reindeer {
+                name: "Dancer",
+                strength: 6,
+                speed: 48.2,
+                height: 65,
+                antler_width: 37,
+                snow_magic_power: 4004,
+                favorite_food: "grass",
+                candies_eaten_yesterday: 5,
+            },
+        ]);
+        let result = reindeer_contest(team);
+        let expected = Json(ReindeerContest {
+            fastest: "Speeding past the finish line with a strength of 5 is Dasher".to_owned(),
+            tallest: "Dasher is standing tall with his 36 cm wide antlers".to_owned(),
+            magician: "Dasher could blast you away with a snow magic power of 9001".to_owned(),
+            consumer: "Dancer ate lots of candies, but also some grass".to_owned(),
+        });
 
         assert_eq!(result, expected);
     }
