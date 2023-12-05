@@ -200,7 +200,7 @@ mod tests_day_04 {
     #[case("[]", "0")]
     #[case(r#"[{"name": "Rudolph", "strength": 2}]"#, "2")]
     fn test_reindeer_team_strength(#[case] body: &str, #[case] expected: &str) {
-        let team = serde_json::from_str(body).unwrap();
+        let team: Vec<Reindeer<'_>> = serde_json::from_str(body).unwrap();
         let result = reindeer_team_strength(Json(team));
 
         assert_eq!(result, expected);
@@ -208,7 +208,7 @@ mod tests_day_04 {
 
     #[test]
     fn test_reindeer_contest() {
-        let team = serde_json::from_str(
+        let team: Vec<Reindeer<'_>> = serde_json::from_str(
             r#"[
                 {
                     "name": "Dasher",
