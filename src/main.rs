@@ -165,7 +165,7 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests_day_01 {
     use super::*;
     use rstest::*;
 
@@ -180,8 +180,13 @@ mod tests {
 
         assert_eq!(result, expected);
     }
+}
 
-    #[rstest]
+#[cfg(test)]
+mod tests_day_04 {
+    use super::*;
+
+    #[test]
     fn test_reindeer_team_strength() {
         let team = serde_json::from_str(
             r#"[
@@ -197,7 +202,7 @@ mod tests {
         assert_eq!(result, "22");
     }
 
-    #[rstest]
+    #[test]
     fn test_reindeer_contest() {
         let team = serde_json::from_str(
             r#"[
