@@ -185,21 +185,25 @@ mod tests_day_01 {
 #[cfg(test)]
 mod tests_day_04 {
     use super::*;
+    use rstest::*;
 
-    #[test]
-    fn test_reindeer_team_strength() {
-        let team = serde_json::from_str(
-            r#"[
-                {"name": "Dasher", "strength": 5},
-                {"name": "Dancer", "strength": 6},
-                {"name": "Prancer", "strength": 4},
-                {"name": "Vixen", "strength": 7}
-            ]"#,
-        )
-        .unwrap();
+    #[rstest]
+    #[case(
+        r#"[
+            {"name": "Dasher", "strength": 5},
+            {"name": "Dancer", "strength": 6},
+            {"name": "Prancer", "strength": 4},
+            {"name": "Vixen", "strength": 7}
+        ]"#,
+        "22"
+    )]
+    #[case("[]", "0")]
+    #[case(r#"[{"name": "Rudolph", "strength": 2}]"#, "2")]
+    fn test_reindeer_team_strength(#[case] body: &str, #[case] expected: &str) {
+        let team = serde_json::from_str(body).unwrap();
         let result = reindeer_team_strength(Json(team));
 
-        assert_eq!(result, "22");
+        assert_eq!(result, expected);
     }
 
     #[test]
