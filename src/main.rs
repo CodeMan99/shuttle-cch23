@@ -167,12 +167,7 @@ fn elf_on_a_shelf(name: &str) -> Json<ElfCount> {
             .build()
             .unwrap()
     });
-    let elf_count = name
-        .to_lowercase()
-        .split_whitespace()
-        .into_iter()
-        .filter(|&s| s.contains("elf"))
-        .count();
+    let elf_count = name.to_lowercase().matches("elf").count();
     let mut shelf_with_elf: usize = 0;
     let mut shelf_without_elf: usize = 0;
     for caps in SHELF_RE.captures_iter(name) {
