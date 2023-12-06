@@ -1,8 +1,6 @@
 use std::rc::Rc;
 use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::{Regex, RegexBuilder};
 use rocket::http::uri::{fmt, Segments};
 use rocket::http::Status;
 use rocket::request::FromSegments;
@@ -151,7 +149,7 @@ fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-struct ElfCount {
+struct ElfCounter {
     elf: usize,
     #[serde(rename = "elf on a shelf")]
     shelf_with_elf: usize,
@@ -159,26 +157,20 @@ struct ElfCount {
     shelf_without_elf: usize,
 }
 
-#[post("/6", data = "<name>")]
-fn elf_on_a_shelf(name: &str) -> Json<ElfCount> {
-    static SHELF_RE: Lazy<Regex> = Lazy::new(|| {
-        RegexBuilder::new(r"\b(?<with_elf>elf on a )?shelf\b")
-            .case_insensitive(true)
-            .build()
-            .unwrap()
-    });
-    let elf_count = name.to_lowercase().matches("elf").count();
-    let mut shelf_with_elf: usize = 0;
-    let mut shelf_without_elf: usize = 0;
-    for caps in SHELF_RE.captures_iter(name) {
-        if caps.name("with_elf").is_some() {
-            shelf_with_elf += 1;
-        } else {
-            shelf_without_elf += 1;
-        }
-    }
+#[post("/6", data = "<text>")]
+fn elf_on_a_shelf(text: &str) -> Json<ElfCounter> {
+    let haystack = text.to_lowercase();
+    let elf_count = haystack.matches("elf").count();
+    let shelf_count = haystack.matches("shelf").count();
+    let elf_on_a_shelf = b"elf on a shelf";
+    let shelf_with_elf = haystack
+        .as_bytes()
+        .windows(elf_on_a_shelf.len())
+        .filter(|window| window == elf_on_a_shelf)
+        .count();
+    let shelf_without_elf = shelf_count - shelf_with_elf;
 
-    Json(ElfCount {
+    Json(ElfCounter {
         elf: elf_count,
         shelf_with_elf,
         shelf_without_elf,
@@ -313,14 +305,22 @@ mod tests_day_06 {
         "One elf and another elf on a shelf on a shelf then another elf on a shelf",
         r#"{
             "elf": 6,
+            "elf on a shelf": 3,
+            "shelf with no elf on it": 0
+        }"#
+    )]
+    #[case(
+        "there is an elf on a shelf on a shelf. there is also another shelf in Belfast.",
+        r#"{
+            "elf": 5,
             "elf on a shelf": 2,
             "shelf with no elf on it": 1
         }"#
     )]
     fn test_elf_on_a_shelf_bonus(#[case] input: &str, #[case] response_body: &str) {
-        let expected: ElfCount = serde_json::from_str(response_body).unwrap();
+        let expected: ElfCounter = serde_json::from_str(response_body).unwrap();
         let Json(result) = elf_on_a_shelf(input);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }
