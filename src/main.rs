@@ -286,6 +286,7 @@ mod tests_day_04 {
 #[cfg(test)]
 mod tests_day_06 {
     use super::*;
+    use rstest::*;
 
     #[test]
     fn test_elf_on_a_shelf() {
@@ -298,18 +299,26 @@ mod tests_day_06 {
         assert_eq!(result.elf, expected_elf_count);
     }
 
-    #[test]
-    fn test_elf_on_a_shelf_bonus() {
-        let input = r#"there is an elf on a shelf on an elf.
-                             there is also another shelf in Belfast."#;
-        let expected: ElfCount = serde_json::from_str(
-            r#"{
-                "elf": 5,
-                "elf on a shelf": 1,
-                "shelf with no elf on it": 1
-            }"#,
-        )
-        .unwrap();
+    #[rstest]
+    #[case(
+        r#"there is an elf on a shelf on an elf.
+           there is also another shelf in Belfast."#,
+        r#"{
+            "elf": 5,
+            "elf on a shelf": 1,
+            "shelf with no elf on it": 1
+        }"#
+    )]
+    #[case(
+        "One elf and another elf on a shelf on a shelf then another elf on a shelf",
+        r#"{
+            "elf": 6,
+            "elf on a shelf": 2,
+            "shelf with no elf on it": 1
+        }"#
+    )]
+    fn test_elf_on_a_shelf_bonus(#[case] input: &str, #[case] response_body: &str) {
+        let expected: ElfCount = serde_json::from_str(response_body).unwrap();
         let Json(result) = elf_on_a_shelf(input);
 
         assert_eq!(expected, result);
