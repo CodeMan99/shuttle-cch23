@@ -1,6 +1,8 @@
 use std::rc::Rc;
 use std::str::FromStr;
 
+use once_cell::sync::Lazy;
+use regex::{Regex, RegexBuilder};
 use rocket::http::uri::{fmt, Segments};
 use rocket::http::Status;
 use rocket::request::FromSegments;
@@ -148,6 +150,46 @@ fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
     })
 }
 
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+struct ElfCount {
+    elf: usize,
+    #[serde(rename = "elf on a shelf")]
+    shelf_with_elf: usize,
+    #[serde(rename = "shelf with no elf on it")]
+    shelf_without_elf: usize,
+}
+
+#[post("/6", data = "<name>")]
+fn elf_on_a_shelf(name: &str) -> Json<ElfCount> {
+    static SHELF_RE: Lazy<Regex> = Lazy::new(|| {
+        RegexBuilder::new(r"\b(?<with_elf>elf on a )?shelf\b")
+            .case_insensitive(true)
+            .build()
+            .unwrap()
+    });
+    let elf_count = name
+        .to_lowercase()
+        .split_whitespace()
+        .into_iter()
+        .filter(|&s| s.contains("elf"))
+        .count();
+    let mut shelf_with_elf: usize = 0;
+    let mut shelf_without_elf: usize = 0;
+    for caps in SHELF_RE.captures_iter(name) {
+        if caps.name("with_elf").is_some() {
+            shelf_with_elf += 1;
+        } else {
+            shelf_without_elf += 1;
+        }
+    }
+
+    Json(ElfCount {
+        elf: elf_count,
+        shelf_with_elf,
+        shelf_without_elf,
+    })
+}
+
 #[shuttle_runtime::main]
 async fn main() -> shuttle_rocket::ShuttleRocket {
     let rocket = rocket::build().mount(
@@ -158,6 +200,7 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
             sled_id,
             reindeer_team_strength,
             reindeer_contest,
+            elf_on_a_shelf,
         ],
     );
 
@@ -233,14 +276,47 @@ mod tests_day_04 {
             ]"#,
         )
         .unwrap();
-        let result = reindeer_contest(Json(team));
-        let expected = Json(ReindeerContest {
+        let Json(result) = reindeer_contest(Json(team));
+        let expected = ReindeerContest {
             fastest: "Speeding past the finish line with a strength of 5 is Dasher".to_owned(),
             tallest: "Dasher is standing tall with his 36 cm wide antlers".to_owned(),
             magician: "Dasher could blast you away with a snow magic power of 9001".to_owned(),
             consumer: "Dancer ate lots of candies, but also some grass".to_owned(),
-        });
+        };
 
         assert_eq!(result, expected);
+    }
+}
+
+#[cfg(test)]
+mod tests_day_06 {
+    use super::*;
+
+    #[test]
+    fn test_elf_on_a_shelf() {
+        let input = r#"The mischievous elf peeked out from behind the toy workshop,
+                             and another elf joined in the festive dance.
+                             Look, there is also an elf on that shelf!"#;
+        let expected_elf_count = 4;
+        let Json(result) = elf_on_a_shelf(input);
+
+        assert_eq!(result.elf, expected_elf_count);
+    }
+
+    #[test]
+    fn test_elf_on_a_shelf_bonus() {
+        let input = r#"there is an elf on a shelf on an elf.
+                             there is also another shelf in Belfast."#;
+        let expected: ElfCount = serde_json::from_str(
+            r#"{
+                "elf": 5,
+                "elf on a shelf": 1,
+                "shelf with no elf on it": 1
+            }"#,
+        )
+        .unwrap();
+        let Json(result) = elf_on_a_shelf(input);
+
+        assert_eq!(expected, result);
     }
 }
