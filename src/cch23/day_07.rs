@@ -40,7 +40,7 @@ fn decode(cookies: &CookieJar<'_>) -> Result<Json<serde_json::Value>, Json<Recip
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct Kitchen {
     recipe: IndexMap<String, u32>,
     pantry: IndexMap<String, u32>,
@@ -82,4 +82,59 @@ fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeError>>
 
 pub fn routes() -> Vec<rocket::Route> {
     rocket::routes![decode, bake]
+}
+
+#[cfg(test)]
+mod tests_day_07 {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    #[case("eyJmbG91ciI6MTAwLCJjaG9jb2xhdGUgY2hpcHMiOjIwfQ==", serde_json::json!({"flour": 100, "chocolate chips": 20}))]
+    #[case("eyJwZWFudXQgYnV0dGVyIjo0MH0=", serde_json::json!({"peanut butter": 40}))]
+    fn test_decode_cookie_value(#[case] cookie: &str, #[case] expected: serde_json::Value) {
+        match decode_cookie::<serde_json::Value>(cookie) {
+            Ok(value) => assert_eq!(value, expected),
+            Err(err) => assert!(false, "{}", err.error),
+        }
+    }
+
+    #[rstest]
+    #[case(
+        "eyJyZWNpcGUiOnsiZmxvdXIiOjk1LCJzdWdhciI6NTAsImJ1dHRlciI6MzAsImJha2luZyBwb3dkZXIiOjEwLCJjaG9jb2xhdGUgY2hpcHMiOjUwfSwicGFudHJ5Ijp7ImZsb3VyIjozODUsInN1Z2FyIjo1MDcsImJ1dHRlciI6MjEyMiwiYmFraW5nIHBvd2RlciI6ODY1LCJjaG9jb2xhdGUgY2hpcHMiOjQ1N319",
+        Kitchen {
+            recipe: IndexMap::from([
+                ("flour".to_owned(), 95), 
+                ("sugar".to_owned(), 50), 
+                ("butter".to_owned(), 30), 
+                ("baking powder".to_owned(), 10), 
+                ("chocolate chips".to_owned(), 50),
+            ]),
+            pantry: IndexMap::from([
+                ("flour".to_owned(), 385),
+                ("sugar".to_owned(), 507),
+                ("butter".to_owned(), 2122),
+                ("baking powder".to_owned(), 865),
+                ("chocolate chips".to_owned(), 457),
+            ]),
+        },
+    )]
+    #[case(
+        "eyJyZWNpcGUiOnsic2xpbWUiOjl9LCJwYW50cnkiOnsiY29iYmxlc3RvbmUiOjY0LCJzdGljayI6IDR9fQ==",
+        Kitchen {
+            recipe: IndexMap::from([
+                ("slime".to_owned(), 9),
+            ]),
+            pantry: IndexMap::from([
+                ("cobblestone".to_owned(), 64),
+                ("stick".to_owned(), 4),
+            ]),
+        },
+    )]
+    fn test_decode_cookie_kitchen(#[case] cookie: &str, #[case] expected: Kitchen) {
+        match decode_cookie::<Kitchen>(cookie) {
+            Ok(kitchen) => assert_eq!(kitchen, expected),
+            Err(err) => assert!(false, "{}", err.error),
+        }
+    }
 }
