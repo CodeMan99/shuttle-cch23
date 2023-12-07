@@ -3,6 +3,7 @@ use indexmap::map::IndexMap;
 use rocket::get;
 use rocket::http::CookieJar;
 use rocket::serde::{json::Json, Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 
 #[derive(Debug, Serialize)]
 pub struct RecipeError {
@@ -17,7 +18,7 @@ impl RecipeError {
 
 const MAX_COOKIE_SIZE: usize = 4096;
 
-fn decode_cookie(cookie: &str) -> Result<serde_json::Value, RecipeError> {
+fn decode_cookie<T: DeserializeOwned>(cookie: &str) -> Result<T, RecipeError> {
     let mut bytes: [u8; MAX_COOKIE_SIZE] = [0; MAX_COOKIE_SIZE];
     let size = URL_SAFE
         .decode_slice(cookie.as_bytes(), &mut bytes)
@@ -54,9 +55,7 @@ pub struct BakeCookies {
 #[get("/7/bake")]
 pub fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeError>> {
     if let Some(recipe_b64) = cookies.get("recipe").map(|cookie| cookie.value()) {
-        let value = decode_cookie(recipe_b64)?;
-        let Kitchen { recipe, mut pantry } = serde_json::from_value(value)
-            .map_err(|_| RecipeError::new("Could not understand recipe, refusing to make cookies for Santa!"))?;
+        let Kitchen { recipe, mut pantry } = decode_cookie(recipe_b64)?;
         let mut cookies: u32 = 0;
         let mut pantry_update = pantry.clone();
 
