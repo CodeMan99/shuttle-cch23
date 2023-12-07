@@ -25,6 +25,8 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
             cch23::day_04::reindeer_team_strength,
             cch23::day_04::reindeer_contest,
             cch23::day_06::elf_on_a_shelf,
+            cch23::day_07::decode,
+            cch23::day_07::bake,
         ],
     );
 

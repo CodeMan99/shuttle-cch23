@@ -233,6 +233,8 @@ dependencies = [
 name = "cch23-codeman99-11a6b43e-33e3-4e59-95d2-62fe1b7711f4"
 version = "0.1.0"
 dependencies = [
+ "base64",
+ "indexmap 2.1.0",
  "rocket",
  "rstest",
  "serde",
