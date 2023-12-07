@@ -6,7 +6,7 @@ use rocket::http::uri::{fmt, Segments};
 use rocket::request::FromSegments;
 
 #[derive(Debug)]
-pub struct SegmentsRest<T>(Rc<[T]>);
+struct SegmentsRest<T>(Rc<[T]>);
 
 impl<'r, T: FromStr<Err = Err>, Err: std::fmt::Debug> FromSegments<'r> for SegmentsRest<T> {
     type Error = Err;
@@ -22,12 +22,16 @@ impl<'r, T: FromStr<Err = Err>, Err: std::fmt::Debug> FromSegments<'r> for Segme
 }
 
 /// Handles both Task 1-1 & 1-2.
-#[get("/1/<nums..>")]
-pub fn sled_id(nums: SegmentsRest<i32>) -> String {
+#[get("/<nums..>")]
+fn sled_id(nums: SegmentsRest<i32>) -> String {
     let SegmentsRest(nums) = nums;
     let a = nums.iter().fold(0, |acc, &x| acc ^ x) as i64;
     let a = a.pow(3);
     a.to_string()
+}
+
+pub fn routes() -> Vec<rocket::Route> {
+    rocket::routes![sled_id]
 }
 
 #[cfg(test)]

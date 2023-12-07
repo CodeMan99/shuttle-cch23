@@ -3,7 +3,7 @@ use rocket::serde::{json::Json, Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Default)]
 #[serde(default)]
-pub struct Reindeer<'r> {
+struct Reindeer<'r> {
     name: &'r str,
     strength: i32,
     speed: f64,
@@ -16,8 +16,8 @@ pub struct Reindeer<'r> {
 }
 
 // TODO not sure if the return type is correct. Might need to be Json<String>.
-#[post("/4/strength", data = "<team>")]
-pub fn reindeer_team_strength(team: Json<Vec<Reindeer<'_>>>) -> String {
+#[post("/strength", data = "<team>")]
+fn reindeer_team_strength(team: Json<Vec<Reindeer<'_>>>) -> String {
     team.iter()
         .map(|reindeer| reindeer.strength)
         .sum::<i32>()
@@ -69,15 +69,15 @@ impl<'r> ContestAward for ConsumerReindeer<'r> {
 }
 
 #[derive(Debug, Default, Serialize, PartialEq)]
-pub struct ReindeerContest {
+struct ReindeerContest {
     fastest: String,
     tallest: String,
     magician: String,
     consumer: String,
 }
 
-#[post("/4/contest", data = "<team>")]
-pub fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
+#[post("/contest", data = "<team>")]
+fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> {
     let fastest = team
         .iter()
         .max_by(|&r1, &r2| r1.speed.total_cmp(&r2.speed))
@@ -104,6 +104,10 @@ pub fn reindeer_contest(team: Json<Vec<Reindeer<'_>>>) -> Json<ReindeerContest> 
         magician,
         consumer,
     })
+}
+
+pub fn routes() -> Vec<rocket::Route> {
+    rocket::routes![reindeer_team_strength, reindeer_contest]
 }
 
 #[cfg(test)]

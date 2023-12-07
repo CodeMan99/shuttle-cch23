@@ -6,7 +6,7 @@ use rocket::serde::{json::Json, Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 
 #[derive(Debug, Serialize)]
-pub struct RecipeError {
+struct RecipeError {
     error: &'static str,
 }
 
@@ -29,8 +29,8 @@ fn decode_cookie<T: DeserializeOwned>(cookie: &str) -> Result<T, RecipeError> {
     Ok(value)
 }
 
-#[get("/7/decode")]
-pub fn decode(cookies: &CookieJar<'_>) -> Result<Json<serde_json::Value>, Json<RecipeError>> {
+#[get("/decode")]
+fn decode(cookies: &CookieJar<'_>) -> Result<Json<serde_json::Value>, Json<RecipeError>> {
     if let Some(recipe) = cookies.get("recipe").map(|cookie| cookie.value()) {
         let recipe = decode_cookie(recipe)?;
 
@@ -47,13 +47,13 @@ struct Kitchen {
 }
 
 #[derive(Debug, Serialize)]
-pub struct BakeCookies {
+struct BakeCookies {
     cookies: u32,
     pantry: IndexMap<String, u32>,
 }
 
-#[get("/7/bake")]
-pub fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeError>> {
+#[get("/bake")]
+fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeError>> {
     if let Some(recipe_b64) = cookies.get("recipe").map(|cookie| cookie.value()) {
         let Kitchen { recipe, mut pantry } = decode_cookie(recipe_b64)?;
         let mut cookies: u32 = 0;
@@ -78,4 +78,8 @@ pub fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeErr
     } else {
         Err(Json(RecipeError::new("No recipe cookie found")))
     }
+}
+
+pub fn routes() -> Vec<rocket::Route> {
+    rocket::routes![decode, bake]
 }

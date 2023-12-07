@@ -16,19 +16,12 @@ fn error() -> status::Custom<&'static str> {
 
 #[shuttle_runtime::main]
 async fn main() -> shuttle_rocket::ShuttleRocket {
-    let rocket = rocket::build().mount(
-        "/",
-        routes![
-            index,
-            error,
-            cch23::day_01::sled_id,
-            cch23::day_04::reindeer_team_strength,
-            cch23::day_04::reindeer_contest,
-            cch23::day_06::elf_on_a_shelf,
-            cch23::day_07::decode,
-            cch23::day_07::bake,
-        ],
-    );
+    let rocket = rocket::build()
+        .mount("/", routes![index, error])
+        .mount("/1", cch23::day_01::routes())
+        .mount("/4", cch23::day_04::routes())
+        .mount("/6", cch23::day_06::routes())
+        .mount("/7", cch23::day_07::routes());
 
     Ok(rocket.into())
 }

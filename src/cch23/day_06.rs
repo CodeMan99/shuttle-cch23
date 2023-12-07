@@ -2,7 +2,7 @@ use rocket::post;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub struct ElfCounter {
+struct ElfCounter {
     elf: usize,
     #[serde(rename = "elf on a shelf")]
     shelf_with_elf: usize,
@@ -10,8 +10,8 @@ pub struct ElfCounter {
     shelf_without_elf: usize,
 }
 
-#[post("/6", data = "<text>")]
-pub fn elf_on_a_shelf(text: &str) -> Json<ElfCounter> {
+#[post("/", data = "<text>")]
+fn elf_on_a_shelf(text: &str) -> Json<ElfCounter> {
     let haystack = text.to_lowercase();
     let elf_count = haystack.matches("elf").count();
     let shelf_count = haystack.matches("shelf").count();
@@ -28,6 +28,10 @@ pub fn elf_on_a_shelf(text: &str) -> Json<ElfCounter> {
         shelf_with_elf,
         shelf_without_elf,
     })
+}
+
+pub fn routes() -> Vec<rocket::Route> {
+    rocket::routes![elf_on_a_shelf]
 }
 
 #[cfg(test)]
