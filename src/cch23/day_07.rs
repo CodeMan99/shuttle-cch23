@@ -62,7 +62,7 @@ pub fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeErr
         'baking_counter: loop {
             for (ingredient, &quantity) in &recipe {
                 let pantry_has = pantry.get(ingredient).cloned().unwrap_or_default();
-                
+
                 if quantity <= pantry_has {
                     pantry_update.insert(ingredient.to_owned(), pantry_has - quantity);
                 } else {
@@ -74,10 +74,7 @@ pub fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeErr
             pantry.clone_from(&pantry_update);
         }
 
-        Ok(Json(BakeCookies {
-            cookies,
-            pantry,
-        }))
+        Ok(Json(BakeCookies { cookies, pantry }))
     } else {
         Err(Json(RecipeError::new("No recipe cookie found")))
     }
