@@ -1,7 +1,7 @@
 use base64::engine::{general_purpose::URL_SAFE, Engine};
 use indexmap::map::IndexMap;
 use rocket::get;
-use rocket::http::CookieJar;
+use rocket::http::{CookieJar, Status};
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 
@@ -14,14 +14,18 @@ impl RecipeError {
     fn new(error: &'static str) -> RecipeError {
         RecipeError { error }
     }
+
+    fn as_response(self, status: Status) -> (Status, Json<RecipeError>) {
+        (status, Json(self))
+    }
 }
 
 const MAX_COOKIE_SIZE: usize = 4096;
 
-fn decode_cookie<T: DeserializeOwned>(cookie: &str) -> Result<T, RecipeError> {
+fn decode_cookie_recipe<T: DeserializeOwned>(cookie_b64: &str) -> Result<T, RecipeError> {
     let mut bytes: [u8; MAX_COOKIE_SIZE] = [0; MAX_COOKIE_SIZE];
     let size = URL_SAFE
-        .decode_slice(cookie.as_bytes(), &mut bytes)
+        .decode_slice(cookie_b64.as_bytes(), &mut bytes)
         .map_err(|_| RecipeError::new("Recipe decoding failed, no cookies for Santa!"))?;
     let value = serde_json::from_slice(&bytes[..size])
         .map_err(|_| RecipeError::new("Recipe deserialization failed, no cookies for Santa!"))?;
@@ -29,14 +33,17 @@ fn decode_cookie<T: DeserializeOwned>(cookie: &str) -> Result<T, RecipeError> {
     Ok(value)
 }
 
+type JsonResult<T, E> = Result<Json<T>, (Status, Json<E>)>;
+
 #[get("/decode")]
-fn decode(cookies: &CookieJar<'_>) -> Result<Json<serde_json::Value>, Json<RecipeError>> {
+fn decode(cookies: &CookieJar<'_>) -> JsonResult<serde_json::Value, RecipeError> {
     if let Some(recipe) = cookies.get("recipe").map(|cookie| cookie.value()) {
-        let recipe = decode_cookie(recipe)?;
+        let recipe = decode_cookie_recipe(recipe)
+            .map_err(|err| err.as_response(Status::UnprocessableEntity))?;
 
         Ok(Json(recipe))
     } else {
-        Err(Json(RecipeError::new("No recipe cookie found")))
+        Err(RecipeError::new("No recipe cookie found").as_response(Status::BadRequest))
     }
 }
 
@@ -53,9 +60,10 @@ struct BakeCookies {
 }
 
 #[get("/bake")]
-fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeError>> {
+fn bake(cookies: &CookieJar<'_>) -> JsonResult<BakeCookies, RecipeError> {
     if let Some(recipe_b64) = cookies.get("recipe").map(|cookie| cookie.value()) {
-        let Kitchen { recipe, mut pantry } = decode_cookie(recipe_b64)?;
+        let Kitchen { recipe, mut pantry } = decode_cookie_recipe(recipe_b64)
+            .map_err(|err| err.as_response(Status::UnprocessableEntity))?;
         let mut cookies: u32 = 0;
         let mut pantry_update = pantry.clone();
 
@@ -76,7 +84,7 @@ fn bake(cookies: &CookieJar<'_>) -> Result<Json<BakeCookies>, Json<RecipeError>>
 
         Ok(Json(BakeCookies { cookies, pantry }))
     } else {
-        Err(Json(RecipeError::new("No recipe cookie found")))
+        Err(RecipeError::new("No recipe cookie found").as_response(Status::BadRequest))
     }
 }
 
@@ -93,7 +101,7 @@ mod tests_day_07 {
     #[case("eyJmbG91ciI6MTAwLCJjaG9jb2xhdGUgY2hpcHMiOjIwfQ==", serde_json::json!({"flour": 100, "chocolate chips": 20}))]
     #[case("eyJwZWFudXQgYnV0dGVyIjo0MH0=", serde_json::json!({"peanut butter": 40}))]
     fn test_decode_cookie_value(#[case] cookie: &str, #[case] expected: serde_json::Value) {
-        match decode_cookie::<serde_json::Value>(cookie) {
+        match decode_cookie_recipe::<serde_json::Value>(cookie) {
             Ok(value) => assert_eq!(value, expected),
             Err(err) => assert!(false, "{}", err.error),
         }
@@ -132,7 +140,7 @@ mod tests_day_07 {
         },
     )]
     fn test_decode_cookie_kitchen(#[case] cookie: &str, #[case] expected: Kitchen) {
-        match decode_cookie::<Kitchen>(cookie) {
+        match decode_cookie_recipe::<Kitchen>(cookie) {
             Ok(kitchen) => assert_eq!(kitchen, expected),
             Err(err) => assert!(false, "{}", err.error),
         }
