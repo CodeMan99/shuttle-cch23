@@ -9,8 +9,8 @@ indexmap = "2.1.0"
 rocket = { version = "0.5.0", features = ["json"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108", features = ["preserve_order"] }
-shuttle-rocket = "0.34.1"
-shuttle-runtime = "0.34.1"
+shuttle-rocket = "0.35.0"
+shuttle-runtime = "0.35.0"
 tokio = "1.26.0"
 
 [dev-dependencies]
