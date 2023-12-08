@@ -7,6 +7,7 @@ edition = "2021"
 base64 = "0.21.5"
 indexmap = "2.1.0"
 rocket = { version = "0.5.0", features = ["json"] }
+rustemon = "3.2.1"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108", features = ["preserve_order"] }
 shuttle-rocket = "0.35.0"
