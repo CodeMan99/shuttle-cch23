@@ -12,11 +12,10 @@ struct ElfCounter {
 
 #[post("/", data = "<text>")]
 fn elf_on_a_shelf(text: &str) -> Json<ElfCounter> {
-    let haystack = text.to_lowercase();
-    let elf_count = haystack.matches("elf").count();
-    let shelf_count = haystack.matches("shelf").count();
+    let elf_count = text.matches("elf").count();
+    let shelf_count = text.matches("shelf").count();
     let elf_on_a_shelf = b"elf on a shelf";
-    let shelf_with_elf = haystack
+    let shelf_with_elf = text
         .as_bytes()
         .windows(elf_on_a_shelf.len())
         .filter(|window| window == elf_on_a_shelf)
