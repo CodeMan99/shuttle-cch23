@@ -47,16 +47,18 @@ fn decode(cookies: &CookieJar<'_>) -> JsonResult<serde_json::Value, RecipeError>
     }
 }
 
+type IngredientUnit = u64;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct Kitchen {
-    recipe: IndexMap<String, u32>,
-    pantry: IndexMap<String, u32>,
+    recipe: IndexMap<String, IngredientUnit>,
+    pantry: IndexMap<String, IngredientUnit>,
 }
 
 #[derive(Debug, Serialize)]
 struct BakeCookies {
-    cookies: u32,
-    pantry: IndexMap<String, u32>,
+    cookies: IngredientUnit,
+    pantry: IndexMap<String, IngredientUnit>,
 }
 
 #[get("/bake")]
@@ -64,17 +66,21 @@ fn bake(cookies: &CookieJar<'_>) -> JsonResult<BakeCookies, RecipeError> {
     if let Some(recipe_b64) = cookies.get("recipe").map(|cookie| cookie.value()) {
         let Kitchen { recipe, mut pantry } = decode_cookie_recipe(recipe_b64)
             .map_err(|err| err.as_response(Status::UnprocessableEntity))?;
-        let mut cookies: u32 = 0;
+        let mut cookies: IngredientUnit = 0;
         let mut pantry_update = pantry.clone();
 
         'baking_counter: loop {
-            for (ingredient, &quantity) in &recipe {
-                let pantry_has = pantry.get(ingredient).cloned().unwrap_or_default();
+            'cookie: for (ingredient, &quantity) in &recipe {
+                if quantity == 0 {
+                    continue 'cookie;
+                }
 
-                if quantity <= pantry_has {
-                    pantry_update.insert(ingredient.to_owned(), pantry_has - quantity);
-                } else {
-                    break 'baking_counter;
+                match pantry.get(ingredient) {
+                    Some(&pantry_has) if quantity <= pantry_has => {
+                        pantry_update.insert(ingredient.to_owned(), pantry_has - quantity);
+                    }
+                    // Pantry does not have enough
+                    Some(_) | None => break 'baking_counter,
                 }
             }
 
