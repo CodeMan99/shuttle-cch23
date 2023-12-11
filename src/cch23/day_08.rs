@@ -28,8 +28,8 @@ async fn pokemon_weight(
     match pokemon_result {
         Ok(pokemon) => {
             // The weight of this Pokémon in hectograms.
-            let weight = pokemon.weight;
-            let kilograms = weight / 10;
+            let weight = pokemon.weight as f64;
+            let kilograms = weight / 10.0;
 
             (Status::Ok, format!("{}", kilograms))
         }
