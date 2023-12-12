@@ -1,9 +1,10 @@
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
+use rocket::data::ToByteUnit;
 use rocket::form::{Form, FromForm};
 use rocket::fs::{relative, NamedFile, TempFile};
-use rocket::http::Status;
+use rocket::http::{ContentType, Status};
 use rocket::{get, post};
 use tokio::io::AsyncReadExt;
 
@@ -57,6 +58,8 @@ impl Pixel {
 
 #[derive(FromForm)]
 struct DetectMagic<'r> {
+    #[field(validate = ext(ContentType::PNG))]
+    #[field(validate = len(..64.mebibytes()))]
     image: TempFile<'r>,
 }
 
