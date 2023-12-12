@@ -34,7 +34,8 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
         .mount("/20", cch23::day_20::routes())
         .mount("/21", cch23::day_21::routes())
         .mount("/22", cch23::day_22::routes())
-        .manage(cch23::day_08::init_rustemon_client());
+        .manage(cch23::day_08::init_rustemon_client())
+        .manage(cch23::day_12::create_storage());
 
     Ok(rocket.into())
 }
