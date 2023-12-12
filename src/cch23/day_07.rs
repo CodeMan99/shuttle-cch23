@@ -15,6 +15,7 @@ impl RecipeError {
         RecipeError { error }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     fn as_response(self, status: Status) -> (Status, Json<RecipeError>) {
         (status, Json(self))
     }
