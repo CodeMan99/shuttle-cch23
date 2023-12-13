@@ -1,6 +1,7 @@
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::{get, routes};
+use sqlx::PgPool;
 
 mod cch23;
 
@@ -15,7 +16,7 @@ fn error() -> status::Custom<&'static str> {
 }
 
 #[shuttle_runtime::main]
-async fn main() -> shuttle_rocket::ShuttleRocket {
+async fn main(#[shuttle_shared_db::Postgres()] pool: PgPool) -> shuttle_rocket::ShuttleRocket {
     let rocket = rocket::build()
         .mount("/", routes![index, error])
         .mount("/1", cch23::day_01::routes())
@@ -35,7 +36,8 @@ async fn main() -> shuttle_rocket::ShuttleRocket {
         .mount("/21", cch23::day_21::routes())
         .mount("/22", cch23::day_22::routes())
         .manage(cch23::day_08::init_rustemon_client())
-        .manage(cch23::day_12::create_storage());
+        .manage(cch23::day_12::create_storage())
+        .manage(cch23::day_13::create_gift_db(pool));
 
     Ok(rocket.into())
 }
