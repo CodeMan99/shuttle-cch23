@@ -1,6 +1,7 @@
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::{get, routes};
+use rocket_dyn_templates::Template;
 use sqlx::PgPool;
 
 mod cch23;
@@ -18,6 +19,7 @@ fn error() -> status::Custom<&'static str> {
 #[shuttle_runtime::main]
 async fn main(#[shuttle_shared_db::Postgres()] pool: PgPool) -> shuttle_rocket::ShuttleRocket {
     let rocket = rocket::build()
+        .attach(Template::fairing())
         .mount("/", routes![index, error])
         .mount("/1", cch23::day_01::routes())
         .mount("/4", cch23::day_04::routes())
