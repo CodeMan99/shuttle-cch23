@@ -63,10 +63,7 @@ async fn reset(gift_db: &State<GiftDatabase>) -> Result<(), (Status, String)> {
     .await
     .map_err(|err| server_err!(err))?;
 
-    transaction
-        .commit()
-        .await
-        .map_err(|err| server_err!(err))?;
+    transaction.commit().await.map_err(|err| server_err!(err))?;
 
     Ok(())
 }
