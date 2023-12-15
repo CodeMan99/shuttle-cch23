@@ -9,7 +9,7 @@ use rocket::{get, post};
 use tokio::io::AsyncReadExt;
 
 macro_rules! http_not_implemented {
-    ($message:expr) => {
+    ($message:literal) => {
         (
             Status::NotImplemented,
             format!("Not Implemented: {}", $message),
