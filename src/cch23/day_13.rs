@@ -3,17 +3,14 @@ use std::fmt::{self, Display};
 use rocket::http::Status;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::{get, post, State};
-use sqlx::{FromRow, PgPool, QueryBuilder};
+use sqlx::{FromRow, QueryBuilder};
+
+use crate::cch23::GiftDatabase;
 
 macro_rules! server_err {
     ($err:expr) => {
         (Status::InternalServerError, $err.to_string())
     };
-}
-
-#[repr(transparent)]
-pub struct GiftDatabase {
-    pool: PgPool,
 }
 
 #[derive(FromRow)]
@@ -78,7 +75,7 @@ async fn orders(
             binder
                 .push_bind(order.id)
                 .push_bind(order.region_id)
-                .push_bind(order.gift_name.clone())
+                .push_bind(order.gift_name.as_str())
                 .push_bind(order.quantity);
         })
         .build()
@@ -124,10 +121,6 @@ async fn popular(gift_db: &State<GiftDatabase>) -> Result<Json<PopularGift>, (St
     .map_err(|err| server_err!(err))?;
 
     Ok(Json(popular_gift.unwrap_or_default()))
-}
-
-pub fn create_gift_db(pool: PgPool) -> GiftDatabase {
-    GiftDatabase { pool }
 }
 
 pub fn routes() -> Vec<rocket::Route> {
