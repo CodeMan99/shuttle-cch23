@@ -10,6 +10,7 @@ png = "0.17.10"
 regex = "1.10.2"
 rocket = { version = "0.5.0", features = ["json", "uuid"] }
 rocket_dyn_templates = { version = "0.1.0", features = ["handlebars"] }
+rocket_ws = "0.1.0"
 rustemon = "3.2.1"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108", features = ["preserve_order"] }
