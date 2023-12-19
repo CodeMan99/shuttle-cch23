@@ -139,23 +139,25 @@ struct TopGift {
 
 #[get("/regions/top_list/<count>")]
 async fn top_list(
-    count: i64,
+    count: u32,
     gift_db: &State<GiftDatabase>,
 ) -> Result<Json<Vec<TopGift>>, (Status, String)> {
-    let gifts: Vec<TopGift> = sqlx::query_as(
+    let gifts: Vec<TopGift> = sqlx::query_as(&format!(
         r#"SELECT r.name AS region, array_remove(array_agg(oo.gift_name), NULL) AS top_gifts
         FROM regions r
         LEFT JOIN LATERAL (
-            SELECT *
+            SELECT o.gift_name, SUM(o.quantity) AS total_quantity
             FROM orders o
             WHERE o.region_id = r.id
-            ORDER BY o.quantity DESC, o.gift_name ASC
-            LIMIT 2
+            GROUP BY o.gift_name
+            ORDER BY total_quantity DESC, o.gift_name ASC
+            LIMIT {}
         ) oo ON TRUE
         GROUP BY r.name
+        ORDER BY r.name ASC
         "#,
-    )
-    .bind(count)
+        count
+    ))
     .fetch_all(&gift_db.pool)
     .await
     .map_err(|err| server_err!(err))?;
