@@ -39,6 +39,7 @@ async fn main(#[shuttle_shared_db::Postgres()] pool: PgPool) -> shuttle_rocket::
         .mount("/22", cch23::day_22::routes())
         .manage(cch23::day_08::init_rustemon_client())
         .manage(cch23::day_12::create_storage())
+        .manage(cch23::day_19::bird_app::create_app())
         .manage(cch23::create_gift_db(pool));
 
     Ok(rocket.into())
