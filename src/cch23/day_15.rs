@@ -180,7 +180,7 @@ impl Password {
     fn rule9(&self) -> Result<(), GameErrorResponse> {
         let s = sha256::digest(&self.input);
 
-        if s.ends_with("a") {
+        if s.ends_with('a') {
             Ok(())
         } else {
             Err(game_err!(418, "not a coffee brewer"))
