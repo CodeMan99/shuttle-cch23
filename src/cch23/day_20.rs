@@ -18,7 +18,7 @@ fn archive_files(bytes: Vec<u8>) -> io::Result<String> {
             tar::EntryType::Regular | tar::EntryType::Continuous => {
                 file_count += 1;
             }
-            _ => todo!(),
+            _ => (),
         }
     }
 
@@ -38,7 +38,7 @@ fn archive_files_size(bytes: Vec<u8>) -> io::Result<String> {
             tar::EntryType::Regular | tar::EntryType::Continuous => {
                 file_size += header.size()?;
             }
-            _ => todo!(),
+            _ => (),
         }
     }
 
