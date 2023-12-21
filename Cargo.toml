@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = { version = "1.0.76", features = ["backtrace"] }
 base64 = "0.21.5"
+dms-coordinates = "1.1.0"
+google_maps = { version = "3.4.0", default-features = false, features = ["enable-reqwest", "native-tls", "brotli", "tokio", "geocoding"] }
 indexmap = "2.1.0"
 png = "0.17.10"
 regex = "1.10.2"
@@ -12,12 +15,14 @@ rocket = { version = "0.5.0", features = ["json", "uuid"] }
 rocket_dyn_templates = { version = "0.1.0", features = ["handlebars"] }
 rocket_ws = "0.1.0"
 rustemon = "3.2.1"
+s2 = "0.0.12"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108", features = ["preserve_order"] }
 sha256 = "1.4.0"
 shuttle-persist = "0.35.1"
 shuttle-rocket = "0.35.1"
 shuttle-runtime = "0.35.1"
+shuttle-secrets = "0.35.2"
 shuttle-shared-db = { version = "0.35.1", features = ["postgres", "sqlx"] }
 sqlx = { version = "0.7.3", features = ["runtime-tokio-native-tls", "postgres"] }
 tar = "0.4.40"

@@ -2,6 +2,7 @@ use rocket::http::Status;
 use rocket::response::status;
 use rocket::{get, routes};
 use rocket_dyn_templates::Template;
+use shuttle_secrets::SecretStore;
 use sqlx::PgPool;
 
 mod cch23;
@@ -17,7 +18,14 @@ fn error() -> status::Custom<&'static str> {
 }
 
 #[shuttle_runtime::main]
-async fn main(#[shuttle_shared_db::Postgres()] pool: PgPool) -> shuttle_rocket::ShuttleRocket {
+async fn main(
+    #[shuttle_shared_db::Postgres()] pool: PgPool,
+    #[shuttle_secrets::Secrets] secret_store: SecretStore,
+) -> shuttle_rocket::ShuttleRocket {
+    let google_api_key = secret_store
+        .get("GOOGLE_API_KEY")
+        .ok_or_else(|| anyhow::anyhow!("Missing key GOOGLE_API_KEY"))?;
+
     let rocket = rocket::build()
         .attach(Template::fairing())
         .mount("/", routes![index, error])
@@ -40,6 +48,7 @@ async fn main(#[shuttle_shared_db::Postgres()] pool: PgPool) -> shuttle_rocket::
         .manage(cch23::day_08::init_rustemon_client())
         .manage(cch23::day_12::create_storage())
         .manage(cch23::day_19::bird_app::create_app())
+        .manage(cch23::day_21::create_google_maps_client(&google_api_key))
         .manage(cch23::create_gift_db(pool));
 
     Ok(rocket.into())
