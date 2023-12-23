@@ -1,0 +1,18 @@
+{
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+    },
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 22428,
+            "driver": "PostgreSQL",
+            "name": "cch23",
+            "database": "postgres",
+            "username": "postgres",
+            "password": "postgres"
+        }
+    ]
+}
