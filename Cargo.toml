@@ -20,11 +20,11 @@ s2 = "0.0.12"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108", features = ["preserve_order"] }
 sha256 = "1.4.0"
-shuttle-persist = "0.35.1"
-shuttle-rocket = "0.35.1"
-shuttle-runtime = "0.35.1"
+shuttle-persist = "0.35.2"
+shuttle-rocket = "0.35.2"
+shuttle-runtime = "0.35.2"
 shuttle-secrets = "0.35.2"
-shuttle-shared-db = { version = "0.35.1", features = ["postgres", "sqlx"] }
+shuttle-shared-db = { version = "0.35.2", features = ["postgres", "sqlx"] }
 sqlx = { version = "0.7.3", features = ["runtime-tokio-native-tls", "postgres"] }
 tar = "0.4.40"
 tempfile = "3.8.1"

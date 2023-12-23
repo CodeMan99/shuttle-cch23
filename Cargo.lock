@@ -3493,9 +3493,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-codegen"
-version = "0.35.1"
+version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b99c06b8adfb88b971c2bc2662252a6ec85f4e041c7b0add64499fbdfd71b18"
+checksum = "a0d8979720bfd909ca7d7b188f55b1a266d455a5f4fc687153eae1883ba470b8"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -3549,9 +3549,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-persist"
-version = "0.35.1"
+version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68bb0a3aa59e3927132fd6cc0b4011770c13d6ae0c02d2591d37d0443311560e"
+checksum = "e6752dff13fb12e98bbf79fdcfc1555956f0ab48e3b53955cb35c4d94097c14d"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3562,9 +3562,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-proto"
-version = "0.35.1"
+version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86275eabcc469d6749d4dc2e091f6e120f04fde813cf7002e5dc60158ce571b"
+checksum = "c6a2740bb2148e6aa2ad57568ca9bf317cfd5bb241fc622fa512d9e45b046afa"
 dependencies = [
  "futures-core",
  "prost 0.12.3",
@@ -3575,9 +3575,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-rocket"
-version = "0.35.1"
+version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "039351d05cd141f49fe34d05383ef3cf4f9feb7a003b07febc61bf094b54c43f"
+checksum = "566852f08a2435480faf4f1de5ecda28c9029ffe6223f7a8c9a2732273da8ce7"
 dependencies = [
  "rocket",
  "shuttle-runtime",
@@ -3585,9 +3585,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-runtime"
-version = "0.35.1"
+version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e057c62f2f77368591117411e8de4458f6df33d0c157875c96025c2435e0811f"
+checksum = "d425ff8765955c524714b98c855350e1441237ee43e058c208d1552405cf3099"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3637,9 +3637,9 @@ dependencies = [
 
 [[package]]
 name = "shuttle-shared-db"
-version = "0.35.1"
+version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a4400d2d94c874fa6c07f8bec2e1a45e38bafee44903cb9a0a513cc17cd323e"
+checksum = "b9ce699bbefdcf14c2cf6a3818b0150fb42b8524d9592ee6e81a0158f7ba6e6b"
 dependencies = [
  "async-trait",
  "serde",
